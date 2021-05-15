@@ -9,10 +9,17 @@ else
     exit
 fi
 
-if [ -d "dataa" ]; then
+if [ -d "data" ]; then
     echo "Found folder [data]"
 else
     echo "Folder [data] not found!\nExiting..."
+    exit
+fi
+
+if [ -d "sql-dw-scripts" ]; then
+    echo "Found folder [sql-dw-scripts]"
+else
+    echo "Folder [sql-dw-scripts] not found!\nExiting..."
     exit
 fi
 
@@ -24,3 +31,18 @@ docker cp $(pwd)/data $container_name:usr/src/data
 
 echo "Executing script to create schema & data..."
 docker exec -i $container_name psql -U advworks_dw -d AdventureWorks -a -f "usr/src/install.sql"
+
+echo "Insert data to dimensional tables"
+
+echo "Customer dimension table"
+cat $(pwd)/sql-dw-scripts/dim_customer.sql | docker exec -i $container_name psql -U advworks_dw -d AdventureWorks
+echo "Date dimension table"
+cat $(pwd)/sql-dw-scripts/dim_date.sql | docker exec -i $container_name psql -U advworks_dw -d AdventureWorks
+echo "Location dimension table"
+cat $(pwd)/sql-dw-scripts/dim_location.sql | docker exec -i $container_name psql -U advworks_dw -d AdventureWorks
+echo "Product dimension table"
+cat $(pwd)/sql-dw-scripts/dim_product.sql | docker exec -i $container_name psql -U advworks_dw -d AdventureWorks
+echo "Sales fact table"
+cat $(pwd)/sql-dw-scripts/fact_sales.sql | docker exec -i $container_name psql -U advworks_dw -d AdventureWorks
+
+echo "DONE!"
